@@ -8,11 +8,39 @@
 #include <log4cxx/helpers/exception.h>
 
 #include <boost/program_options.hpp>
+#include <boost/asio.hpp>
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
 LoggerPtr loggerMyMain(Logger::getLogger( "main"));
+
+using WorkPtr = std::shared_ptr<boost::asio::io_service::work>;
+
+WorkPtr g_spWork;
+
+void handler(
+    const boost::system::error_code& error,
+    int signal_number)
+{
+  if (!error)
+  {
+      switch (signal_number) {
+      case SIGTERM:
+          LOG4CXX_INFO(loggerMyMain, "SIGTERM reached;");
+          g_spWork.reset();
+          break;
+      case SIGINT:
+          LOG4CXX_INFO(loggerMyMain, "SIGINT entered;");
+          g_spWork.reset();
+          break;
+      default:
+          LOG4CXX_INFO(loggerMyMain, "unexpected SIGNAL: " << signal_number);
+          break;
+      }
+  }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -25,6 +53,14 @@ int main(int argc, char* argv[])
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
+
+    boost::asio::io_service myIoService;
+    // Construct a signal set registered for process termination.
+    boost::asio::signal_set signals(myIoService);
+
+
+    signals.add(SIGINT);
+    signals.add(SIGTERM);
 
     if (vm.count("help"))
     {
@@ -43,8 +79,12 @@ int main(int argc, char* argv[])
     }
 
     LOG4CXX_INFO(loggerMyMain, "Application has started;");
-    std::cout << "Hallo Ralf!" << std::endl;
-    LOG4CXX_INFO(loggerMyMain, "Hallo Ralf!");
+
+    signals.async_wait(handler);
+
+    LOG4CXX_INFO(loggerMyMain, "Hallo Henry!");
+    g_spWork = std::make_shared<boost::asio::io_service::work>(myIoService);
+    myIoService.run();
     LOG4CXX_INFO(loggerMyMain, "Application has stopped;");
     return 0;
 }

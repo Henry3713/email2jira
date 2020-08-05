@@ -9,4 +9,4 @@ set(${CMAKE_PROJECT_NAME}_SOURCE ./src/main.cpp)
 
 add_executable (${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SOURCE})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${LOG4CXX_LIBRARY} ${Boost_LIBRARIES})
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${LOG4CXX_LIBRARY} ${Boost_LIBRARIES} pthread)

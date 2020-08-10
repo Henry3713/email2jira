@@ -1,7 +1,8 @@
+#include "Email2JiraImpl.h"
+
 #include <iostream> 
 #include <string>
 
-// include log4cxx header files.
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/xml/domconfigurator.h>
@@ -15,9 +16,13 @@ using namespace log4cxx::helpers;
 
 LoggerPtr loggerMyMain(Logger::getLogger( "main"));
 
-using WorkPtr = std::shared_ptr<boost::asio::io_service::work>;
+using Email2JiraPtr = std::shared_ptr<tyntec::email2jira::Email2JiraImpl>;
 
-WorkPtr g_spWork;
+Email2JiraPtr g_spEmail2Jira;
+
+boost::asio::io_service myIoService;
+// Construct a signal set registered for process termination.
+boost::asio::signal_set signals(myIoService);
 
 void handler(
     const boost::system::error_code& error,
@@ -27,17 +32,26 @@ void handler(
   {
       switch (signal_number) {
       case SIGTERM:
-          LOG4CXX_INFO(loggerMyMain, "SIGTERM reached;");
-          g_spWork.reset();
+          LOG4CXX_INFO(loggerMyMain, "SIGTERM reached");
+          g_spEmail2Jira->fini();
+          return;
           break;
       case SIGINT:
-          LOG4CXX_INFO(loggerMyMain, "SIGINT entered;");
-          g_spWork.reset();
+          LOG4CXX_INFO(loggerMyMain, "SIGINT entered");
+          g_spEmail2Jira->fini();
+          return;
+          break;
+      case SIGUSR1:
+          LOG4CXX_INFO(loggerMyMain, "SIGUSR1 entered");
+          break;
+      case SIGPIPE:
+          LOG4CXX_TRACE(loggerMyMain, "SIGPIPE entered, do nothing. :)");
           break;
       default:
-          LOG4CXX_INFO(loggerMyMain, "unexpected SIGNAL: " << signal_number);
+          LOG4CXX_ERROR(loggerMyMain, "unexpected SIGNAL: " << signal_number);
           break;
       }
+      signals.async_wait(handler);
   }
 }
 
@@ -54,13 +68,10 @@ int main(int argc, char* argv[])
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    boost::asio::io_service myIoService;
-    // Construct a signal set registered for process termination.
-    boost::asio::signal_set signals(myIoService);
-
-
     signals.add(SIGINT);
     signals.add(SIGTERM);
+    signals.add(SIGUSR1);
+    signals.add(SIGPIPE);
 
     if (vm.count("help"))
     {
@@ -83,8 +94,12 @@ int main(int argc, char* argv[])
     signals.async_wait(handler);
 
     LOG4CXX_INFO(loggerMyMain, "Hallo Henry!");
-    g_spWork = std::make_shared<boost::asio::io_service::work>(myIoService);
+    g_spEmail2Jira = std::make_shared<tyntec::email2jira::Email2JiraImpl>(myIoService, loggerMyMain->getLogger("Email2JiraImpl"));
+
     myIoService.run();
+
+    g_spEmail2Jira.reset();
+
     LOG4CXX_INFO(loggerMyMain, "Application has stopped;");
     return 0;
 }

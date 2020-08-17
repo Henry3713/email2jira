@@ -2,6 +2,7 @@
 
 #include <iostream> 
 #include <string>
+#include <functional>
 
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
@@ -96,6 +97,7 @@ int main(int argc, char* argv[])
     LOG4CXX_INFO(loggerMyMain, "Hallo Henry!");
     g_spEmail2Jira = std::make_shared<tyntec::email2jira::Email2JiraImpl>(myIoService, loggerMyMain->getLogger("Email2JiraImpl"));
 
+    myIoService.post(std::bind(&tyntec::email2jira::Email2JiraImpl::init,g_spEmail2Jira));
     myIoService.run();
 
     g_spEmail2Jira.reset();

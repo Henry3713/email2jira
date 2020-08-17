@@ -5,7 +5,8 @@ find_package(Boost 1.65.1 COMPONENTS program_options system)
 
 find_library(LOG4CXX_LIBRARY log4cxx)
 
-set(${CMAKE_PROJECT_NAME}_SOURCE ./src/main.cpp)
+set(${CMAKE_PROJECT_NAME}_SOURCE ./src/main.cpp
+                                   ./src/Email2JiraImpl.cpp)
 
 add_executable (${CMAKE_PROJECT_NAME} ${${CMAKE_PROJECT_NAME}_SOURCE})
 

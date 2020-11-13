@@ -13,7 +13,7 @@ public:
     CertVerifierImpl(void);
     ~CertVerifierImpl(void);
 
-    void verify(vmime::shared_ptr<certificateChain> certs);
+    // void verify(vmime::shared_ptr<certificateChain> certs);
 
 };
 

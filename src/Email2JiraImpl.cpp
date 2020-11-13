@@ -21,8 +21,9 @@ void Email2JiraImpl::init(void)
     LOG4CXX_TRACE(spLogger_, "Email2JiraImpl start init");
 
 
-    ImapAdapterImpl adapter;
+    ImapAdapterImpl adapter(spLogger_);
     try  {
+        adapter.loadCertificate();
         adapter.createSession();
         adapter.openStore();
         adapter.openConnection();

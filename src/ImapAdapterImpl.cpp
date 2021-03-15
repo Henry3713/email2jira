@@ -84,8 +84,12 @@ void ImapAdapterImpl::openFolder(void)
     inbox_ = store_->getDefaultFolder();
     inbox_->open(vmime::net::folder::MODE_READ_WRITE);
 
+    int msgCount = inbox_->getMessageCount();
+    LOG4CXX_TRACE(spLogger_, "Messages in Folder: " << msgCount);
 
-    vmime::shared_ptr<vmime::net::message> msg = inbox_->getMessage(1);
+    if (msgCount > 0)
+    {
+        vmime::shared_ptr<vmime::net::message> msg = inbox_->getMessage(1);
 
 //    inbox_->fetchMessages(allMessages,
 //                          vmime::net::fetchAttributes::FLAGS |
@@ -101,8 +105,9 @@ void ImapAdapterImpl::openFolder(void)
             msg->extract(out);
             LOG4CXX_TRACE(spLogger_, ssout.str());
         }
+      }
 //    }
 
-
+    inbox_->close(true);
 }
 }}

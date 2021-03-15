@@ -1,6 +1,9 @@
 #include "ImapAdapterImpl.h"
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
+#include <vector>
+
 
 namespace tyntec { namespace email2jira {
 
@@ -68,6 +71,7 @@ void ImapAdapterImpl::openConnection(void)
     if(isConnected)
     {
         LOG4CXX_TRACE(spLogger_, "Hurra");
+        openFolder();
     }
     else
     {
@@ -75,4 +79,30 @@ void ImapAdapterImpl::openConnection(void)
     }
 }
 
+void ImapAdapterImpl::openFolder(void)
+{
+    inbox_ = store_->getDefaultFolder();
+    inbox_->open(vmime::net::folder::MODE_READ_WRITE);
+
+
+    vmime::shared_ptr<vmime::net::message> msg = inbox_->getMessage(1);
+
+//    inbox_->fetchMessages(allMessages,
+//                          vmime::net::fetchAttributes::FLAGS |
+//                          vmime::net::fetchAttributes::ENVELOPE);
+
+//    if (allMessages.size()>0)
+//    {
+//        vmime::shared_ptr<vmime::net::message> msg = allMessages[0];
+        if (msg)
+        {
+            std::stringstream ssout;
+            vmime::utility::outputStreamAdapter out(ssout);
+            msg->extract(out);
+            LOG4CXX_TRACE(spLogger_, ssout.str());
+        }
+//    }
+
+
+}
 }}

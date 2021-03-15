@@ -23,6 +23,7 @@ class ImapAdapterImpl
 
     vmime::shared_ptr<vmime::net::session>  session_;
     vmime::shared_ptr<vmime::net::store>    store_;
+    vmime::shared_ptr<vmime::net::folder>   inbox_;
 
 public:
     ImapAdapterImpl(log4cxx::LoggerPtr spLogger);
@@ -32,6 +33,7 @@ public:
     void openStore(void);
     void loadCertificate(void);
     void openConnection(void);
+    void openFolder(void);
 };
 
 }}
